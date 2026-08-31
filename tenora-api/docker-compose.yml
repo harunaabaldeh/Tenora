@@ -1,0 +1,131 @@
+name: tenora
+
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MIGRATE_DB_USER: ${MIGRATE_DB_USER}
+      MIGRATE_DB_PASSWORD: ${MIGRATE_DB_PASSWORD}
+      APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - tenora-backend
+    shm_size: 128mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  migrate:
+    image: migrate/migrate:v4.19.1
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./db/migrations:/migrations:ro
+    networks:
+      - tenora-backend
+    command:
+      - -path=/migrations
+      - -database
+      - postgres://${MIGRATE_DB_USER}:${MIGRATE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      - up
+
+  migrate-down:
+    profiles: ["cli"]
+    image: migrate/migrate:v4.19.1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./db/migrations:/migrations:ro
+    networks:
+      - tenora-backend
+    command:
+      - -path=/migrations
+      - -database
+      - postgres://${MIGRATE_DB_USER}:${MIGRATE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+      - down
+      - "1"
+
+  migrate-create:
+    profiles: ["cli"]
+    image: migrate/migrate:v4.19.1
+    volumes:
+      - ./db/migrations:/migrations
+    entrypoint:
+      - migrate
+      - create
+      - -ext
+      - sql
+      - -dir
+      - /migrations
+      - -seq
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: tenora-api:local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB}
+      DATABASE_USER: ${APP_DB_USER}
+      DATABASE_PASSWORD: ${APP_DB_PASSWORD}
+      DATABASE_SSL: "false"
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+    ports:
+      - "127.0.0.1:${API_PORT:-3000}:3000"
+    networks:
+      - tenora-backend
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '/health/ready').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 30s
+
+volumes:
+  postgres_data:
+    name: tenora_postgres_data
+
+networks:
+  tenora-backend:
+    name: tenora-backend
+    driver: bridge

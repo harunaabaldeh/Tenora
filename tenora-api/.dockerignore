@@ -1,0 +1,29 @@
+# Git and editor
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+
+# Secrets and local env (compose injects env at runtime)
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules
+dist
+coverage
+*.tsbuildinfo
+
+# Tests and docs (not needed to build the image)
+test
+**/*.spec.ts
+*.md
+LICENSE
+
+# Local tooling
+.temp
+.tmp
+logs
+*.log

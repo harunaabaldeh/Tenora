@@ -1,0 +1,9 @@
+process.env.NODE_ENV ??= 'test';
+process.env.PORT ??= '3000';
+process.env.DATABASE_HOST ??= 'localhost';
+process.env.DATABASE_PORT ??= '5432';
+process.env.DATABASE_NAME ??= 'tenora';
+process.env.DATABASE_USER ??= 'tenora_app';
+process.env.DATABASE_PASSWORD ??= 'test';
+process.env.DATABASE_SSL ??= 'false';
+process.env.DATABASE_POOL_MAX ??= '10';
