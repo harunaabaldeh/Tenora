@@ -1,6 +1,8 @@
 # Tenora API
 
-NestJS backend for Tenora. PostgreSQL and schema migrations run in Docker. You can run the API in Docker as well, or on the host against that database.
+Backend for [Tenora](../README.md), a centralized property-maintenance platform. Tenora connects tenants, landlords, property managers, and real estate agencies throughout the entire maintenance process—from reporting an issue to its resolution.
+
+This service is a NestJS API. PostgreSQL and schema migrations run in Docker. You can run the API in Docker as well, or on the host against that database.
 
 ## Prerequisites
 
