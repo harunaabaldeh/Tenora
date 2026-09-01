@@ -1,0 +1,40 @@
+---
+description: NestJS feature modules live under src/modules
+alwaysApply: true
+---
+
+# Feature modules
+
+Put every NestJS feature module in `tenora-api/src/modules/<name>/`. Do not add new feature modules next to `app.module.ts`.
+
+Keep infrastructure where it is:
+
+- `src/config/` — environment and configuration
+- `src/database/` — TypeORM DataSource, migrations, and connection module
+- `src/health/` — liveness and readiness
+
+## New module layout
+
+```
+src/modules/<name>/
+  <name>.module.ts
+  <name>.controller.ts
+  <name>.service.ts
+  entities/
+  dto/
+  enums/
+```
+
+Register the module in `src/app.module.ts` with `TypeOrmModule.forFeature`. Use the TypeORM `EntityManager` (or `@InjectRepository`) in the service — do not add a custom repository class.
+
+Schema changes go in `src/database/migrations/` as TypeORM migrations. Keep `synchronize: false`. Register new migrations in `src/database/data-source.ts`.
+
+```typescript
+// ❌ BAD
+src/users/users.module.ts
+src/users/users.repository.ts
+
+// ✅ GOOD
+src/modules/users/users.module.ts
+src/modules/users/entities/user.entity.ts
+```

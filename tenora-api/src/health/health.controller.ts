@@ -1,9 +1,9 @@
 import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
-import { PostgresService } from '../database/postgres.service';
+import { DataSource } from 'typeorm';
 
 @Controller('health')
 export class HealthController {
-  constructor(private readonly postgres: PostgresService) {}
+  constructor(private readonly dataSource: DataSource) {}
 
   @Get('live')
   live(): { status: 'ok' } {
@@ -25,7 +25,7 @@ export class HealthController {
     checks: { postgres: 'up' };
   }> {
     try {
-      await this.postgres.query('SELECT 1');
+      await this.dataSource.query('SELECT 1');
       return { status: 'ok', checks: { postgres: 'up' } };
     } catch {
       throw new ServiceUnavailableException({
