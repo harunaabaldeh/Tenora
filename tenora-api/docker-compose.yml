@@ -28,51 +28,48 @@ services:
       start_period: 10s
 
   migrate:
-    image: migrate/migrate:v4.19.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: tenora-api:local
     restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./db/migrations:/migrations:ro
+    environment:
+      NODE_ENV: production
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB}
+      DATABASE_USER: ${MIGRATE_DB_USER}
+      DATABASE_PASSWORD: ${MIGRATE_DB_PASSWORD}
+      DATABASE_SSL: "false"
+    command: ["node", "dist/database/run-migrations.js"]
     networks:
       - tenora-backend
-    command:
-      - -path=/migrations
-      - -database
-      - postgres://${MIGRATE_DB_USER}:${MIGRATE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
-      - up
 
   migrate-down:
     profiles: ["cli"]
-    image: migrate/migrate:v4.19.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: tenora-api:local
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./db/migrations:/migrations:ro
+    environment:
+      NODE_ENV: production
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB}
+      DATABASE_USER: ${MIGRATE_DB_USER}
+      DATABASE_PASSWORD: ${MIGRATE_DB_PASSWORD}
+      DATABASE_SSL: "false"
+    command: ["node", "dist/database/revert-last-migration.js"]
     networks:
       - tenora-backend
-    command:
-      - -path=/migrations
-      - -database
-      - postgres://${MIGRATE_DB_USER}:${MIGRATE_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
-      - down
-      - "1"
-
-  migrate-create:
-    profiles: ["cli"]
-    image: migrate/migrate:v4.19.1
-    volumes:
-      - ./db/migrations:/migrations
-    entrypoint:
-      - migrate
-      - create
-      - -ext
-      - sql
-      - -dir
-      - /migrations
-      - -seq
 
   api:
     build:

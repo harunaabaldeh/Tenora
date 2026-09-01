@@ -80,6 +80,30 @@ You should see `{"status":"ok"}` and `{"status":"ok","checks":{"postgres":"up"}}
 | `GET /health/ready` | Process can reach Postgres |
 | `GET /health` | Same as ready |
 
+## Users API
+
+Feature modules live in `src/modules/`. Users are the people on the platform: tenants, landlords, property managers, and agencies.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/users` | Create a user |
+| `GET` | `/users` | List users (`page`, `limit`, optional `role`) |
+| `GET` | `/users/:id` | Get one user |
+| `PATCH` | `/users/:id` | Update a user |
+| `DELETE` | `/users/:id` | Soft-delete a user |
+
+Passwords are hashed before storage and never returned. Emails are unique among active users.
+
+Example:
+
+```bash
+curl -X POST http://localhost:3000/users \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"ada@example.com\",\"password\":\"super-secret\",\"firstName\":\"Ada\",\"lastName\":\"Lovelace\",\"role\":\"tenant\"}"
+```
+
+Valid `role` values: `tenant`, `landlord`, `property_manager`, `agency`.
+
 ## Daily commands
 
 | Command | What it does |
@@ -95,9 +119,9 @@ You should see `{"status":"ok"}` and `{"status":"ok","checks":{"postgres":"up"}}
 | `npm run db:migrate:down` | Roll back the latest migration |
 | `npm run db:down` | Stop containers (data volume is kept) |
 | `npm run db:reset` | Destroy the volume, recreate Postgres, and re-run migrations |
-| `npm run migration:create -- add_users` | Scaffold a new `up`/`down` SQL pair in `db/migrations/` |
+| `npm run migration:create -- src/database/migrations/AddSomething` | Scaffold a TypeORM migration class |
 
-After you add a migration, apply it with `npm run db:migrate`, then restart the API container if it is already running (`docker compose restart api`).
+After you add a migration, register it in `src/database/data-source.ts`, apply it with `npm run db:migrate`, then restart the API container if it is already running (`docker compose restart api`).
 
 ## Docker image
 
@@ -112,12 +136,14 @@ The Compose `api` service uses the production target. It does not copy `.env` in
 
 ## Database
 
+The API uses [TypeORM](https://typeorm.io/) with `synchronize: false`. Schema changes are TypeORM migrations in `src/database/migrations/`. The Compose **migrate** service runs those migrations with the `tenora_migrate` role before the API starts.
+
 Compose services:
 
 - **postgres** — PostgreSQL 17, published on `127.0.0.1:5432`
-- **migrate** — [golang-migrate](https://github.com/golang-migrate/migrate) one-shot job that applies `db/migrations/`
+- **migrate** — same production image as the API; runs `dist/database/run-migrations.js` and exits
 - **api** — NestJS production image; starts only after migrate exits successfully
-- **migrate-down** / **migrate-create** — CLI helpers (Compose profile `cli`)
+- **migrate-down** — CLI helper (Compose profile `cli`) to revert the last migration
 
 Roles created on first boot (`db/init/`):
 
@@ -132,23 +158,16 @@ Init scripts run **once**, when the data volume is empty. After you change `db/i
 ### Adding a migration
 
 ```bash
-npm run migration:create -- add_users
+npm run migration:create -- src/database/migrations/AddProperties
 ```
 
-That creates files such as:
-
-```
-db/migrations/000002_add_users.up.sql
-db/migrations/000002_add_users.down.sql
-```
-
-Edit both, then apply:
+That scaffolds a TypeORM migration class. Implement `up` / `down`, then add the class to the `migrations` array in `src/database/data-source.ts`. Apply with:
 
 ```bash
 npm run db:migrate
 ```
 
-Do not auto-sync schema from the application. SQL in `db/migrations/` is the source of truth.
+Do not enable `synchronize`. TypeORM migrations are the source of truth for schema.
 
 ## Configuration
 

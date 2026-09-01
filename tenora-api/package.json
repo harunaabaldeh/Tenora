@@ -24,7 +24,7 @@
     "db:migrate:down": "docker compose --profile cli run --rm migrate-down",
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d postgres --wait && docker compose run --rm migrate",
-    "migration:create": "docker compose --profile cli run --rm --no-deps migrate-create",
+    "migration:create": "npx typeorm migration:create",
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f api"
@@ -33,10 +33,16 @@
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^12.0.1",
+    "@nestjs/mapped-types": "^12.0.0",
     "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/typeorm": "^12.0.1",
+    "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "typeorm": "^0.3.31",
     "zod": "^4.5.4"
   },
   "devDependencies": {
@@ -44,6 +50,7 @@
     "@nestjs/mau": "^0.2.6",
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
