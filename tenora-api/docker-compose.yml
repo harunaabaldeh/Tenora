@@ -93,6 +93,8 @@ services:
       DATABASE_PASSWORD: ${APP_DB_PASSWORD}
       DATABASE_SSL: "false"
       DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-10}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-8h}
     ports:
       - "127.0.0.1:${API_PORT:-3000}:3000"
     networks:

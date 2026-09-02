@@ -7,3 +7,5 @@ process.env.DATABASE_USER ??= 'tenora_app';
 process.env.DATABASE_PASSWORD ??= 'test';
 process.env.DATABASE_SSL ??= 'false';
 process.env.DATABASE_POOL_MAX ??= '10';
+process.env.JWT_SECRET ??= 'tenora_jwt_test_secret_that_is_long_enough';
+process.env.JWT_EXPIRES_IN ??= '8h';
