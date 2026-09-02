@@ -15,6 +15,8 @@ const envSchema = z.object({
     .default('false')
     .transform((value) => value === 'true'),
   DATABASE_POOL_MAX: z.coerce.number().int().positive().default(10),
+  JWT_SECRET: z.string().min(32),
+  JWT_EXPIRES_IN: z.string().min(1).default('8h'),
 });
 
 export type Env = z.infer<typeof envSchema>;

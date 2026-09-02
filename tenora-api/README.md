@@ -80,9 +80,36 @@ You should see `{"status":"ok"}` and `{"status":"ok","checks":{"postgres":"up"}}
 | `GET /health/ready` | Process can reach Postgres |
 | `GET /health` | Same as ready |
 
+## Auth
+
+Email and password for now. Register creates a user and returns a JWT. Login returns the same shape. Send `Authorization: Bearer <accessToken>` on protected routes.
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| `POST` | `/auth/register` | Public | Create an account and receive a token |
+| `POST` | `/auth/login` | Public | Sign in with email and password |
+| `GET` | `/auth/me` | Bearer | Current user |
+
+Example:
+
+```bash
+curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"ada@example.com\",\"password\":\"at-least-8-chars\",\"firstName\":\"Ada\",\"lastName\":\"Lovelace\",\"role\":\"tenant\"}"
+
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"ada@example.com\",\"password\":\"at-least-8-chars\"}"
+
+curl http://localhost:3000/auth/me \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+Set `JWT_SECRET` (at least 32 characters) and optional `JWT_EXPIRES_IN` (default `8h`) in `.env`.
+
 ## Users API
 
-Feature modules live in `src/modules/`. Users are the people on the platform: tenants, landlords, property managers, and agencies.
+Feature modules live in `src/modules/`. Users are the people on the platform: tenants, landlords, property managers, and agencies. User management routes require a Bearer token. Use `/auth/register` for public sign-up.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -93,14 +120,6 @@ Feature modules live in `src/modules/`. Users are the people on the platform: te
 | `DELETE` | `/users/:id` | Soft-delete a user |
 
 Passwords are hashed before storage and never returned. Emails are unique among active users.
-
-Example:
-
-```bash
-curl -X POST http://localhost:3000/users \
-  -H "Content-Type: application/json" \
-  -d "{\"email\":\"ada@example.com\",\"password\":\"super-secret\",\"firstName\":\"Ada\",\"lastName\":\"Lovelace\",\"role\":\"tenant\"}"
-```
 
 Valid `role` values: `tenant`, `landlord`, `property_manager`, `agency`.
 
@@ -183,7 +202,8 @@ Do not enable `synchronize`. TypeORM migrations are the source of truth for sche
 | `DATABASE_SSL` | `false` for local Docker |
 | `DATABASE_POOL_MAX` | Pool size (default `10`) |
 | `PORT` | HTTP port inside the process (default `3000`) |
-| `API_PORT` | Host port published for the API container (default `3000`) |
+| `JWT_SECRET` | Signing key for access tokens (min 32 characters) |
+| `JWT_EXPIRES_IN` | Access token lifetime (default `8h`) |
 
 Compose interpolates `POSTGRES_*`, `MIGRATE_DB_*`, and `APP_DB_*` from the same `.env` file.
 

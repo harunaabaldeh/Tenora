@@ -30,7 +30,7 @@ export class UsersService {
     } catch (error) {
       this.rethrowWriteError(error);
     }
-  }
+  } 
 
   async findById(id: string): Promise<User> {
     const user = await this.entityManager.findOne(User, { where: { id } });
@@ -38,6 +38,14 @@ export class UsersService {
       throw new NotFoundException(`User ${id} was not found`);
     }
     return user;
+  }
+
+  findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.entityManager
+      .createQueryBuilder(User, 'user')
+      .addSelect('user.passwordHash')
+      .where('user.email = :email', { email })
+      .getOne();
   }
 
   async list(query: QueryUsersDto): Promise<{

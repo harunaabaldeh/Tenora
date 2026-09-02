@@ -24,7 +24,7 @@ export class User {
   email: string;
 
   @Exclude()
-  @Column({ name: 'password_hash', type: 'text' })
+  @Column({ name: 'password_hash', type: 'text', select: false })
   passwordHash: string;
 
   @Column({ name: 'first_name', type: 'varchar', length: 100 })

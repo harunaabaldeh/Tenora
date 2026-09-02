@@ -10,6 +10,10 @@ export interface AppConfig {
     ssl: boolean;
     poolMax: number;
   };
+  jwt: {
+    secret: string;
+    expiresIn: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -23,5 +27,9 @@ export default (): AppConfig => ({
     password: process.env.DATABASE_PASSWORD ?? '',
     ssl: process.env.DATABASE_SSL === 'true',
     poolMax: Number(process.env.DATABASE_POOL_MAX ?? 10),
+  },
+  jwt: {
+    secret: process.env.JWT_SECRET ?? '',
+    expiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
   },
 });
