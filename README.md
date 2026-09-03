@@ -4,6 +4,8 @@ Tenora is a centralized platform for property maintenance. It connects tenants, 
 
 Today, maintenance work is scattered across calls, emails, spreadsheets, and one-off tools. Tenora replaces that fragmentation with a single place to report problems, coordinate the people involved, and track progress until the job is done.
 
+Data is scoped to an **organization** — a real estate agency, or an independent landlord / property-management business. Properties and maintenance requests belong to that organization.
+
 ## Repository
 
 | Path | Role |

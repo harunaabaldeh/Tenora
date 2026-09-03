@@ -109,7 +109,7 @@ Set `JWT_SECRET` (at least 32 characters) and optional `JWT_EXPIRES_IN` (default
 
 ## Users API
 
-Feature modules live in `src/modules/`. Users are the people on the platform: tenants, landlords, property managers, and agencies. User management routes require a Bearer token. Use `/auth/register` for public sign-up.
+Feature modules live in `src/modules/`. Users are the people on the platform: tenants, landlords, property managers, and agency staff. User management routes require a Bearer token. Use `/auth/register` for public sign-up.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -122,6 +122,39 @@ Feature modules live in `src/modules/`. Users are the people on the platform: te
 Passwords are hashed before storage and never returned. Emails are unique among active users.
 
 Valid `role` values: `tenant`, `landlord`, `property_manager`, `agency`.
+
+## Organizations API
+
+An organization is the data-ownership boundary for everything that follows (properties, maintenance requests, and so on). It represents either a **real estate agency** or an **independent** portfolio — a landlord or property-management business operating without an agency.
+
+Users (agency staff, property managers, landlords) belong to an organization through membership. Tenants are not members; they will attach later through properties and leases.
+
+Creating an organization makes the current user the `owner`. List and get only return organizations the caller belongs to. Unknown or unauthorized organizations return 404, not 403.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/organizations` | Create an organization (caller becomes owner) |
+| `GET` | `/organizations` | List the caller's organizations (`page`, `limit`, optional `type`) |
+| `GET` | `/organizations/:id` | Get one organization |
+| `PATCH` | `/organizations/:id` | Update an organization (owner or admin) |
+| `DELETE` | `/organizations/:id` | Soft-delete an organization (owner) |
+| `GET` | `/organizations/:id/members` | List members |
+| `POST` | `/organizations/:id/members` | Add a member (owner or admin) |
+| `PATCH` | `/organizations/:id/members/:memberId` | Change a member's role (owner or admin) |
+| `DELETE` | `/organizations/:id/members/:memberId` | Remove a member (owner or admin) |
+
+Valid `type` values: `agency`, `independent`.
+
+Valid membership `role` values: `owner`, `admin`, `member`. The last owner cannot be removed or demoted. Tenants cannot create organizations or be added as members.
+
+Example:
+
+```bash
+curl -X POST http://localhost:3000/organizations \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d "{\"name\":\"Acme Realty\",\"type\":\"agency\",\"email\":\"hello@acme.example\"}"
+```
 
 ## Daily commands
 

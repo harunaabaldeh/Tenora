@@ -5,6 +5,7 @@ import { validateEnv } from './config/env.validation';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { UsersModule } from './modules/users/users.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     HealthModule,
     UsersModule,
+    OrganizationsModule,
     AuthModule,
   ],
   controllers: [],
